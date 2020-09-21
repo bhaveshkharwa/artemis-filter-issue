@@ -1,0 +1,203 @@
+<?xml version='1.0'?>
+<!-- Licensed to the Apache Software Foundation (ASF) under one or more contributor 
+	license agreements. See the NOTICE file distributed with this work for additional 
+	information regarding copyright ownership. The ASF licenses this file to 
+	you under the Apache License, Version 2.0 (the "License"); you may not use 
+	this file except in compliance with the License. You may obtain a copy of 
+	the License at http://www.apache.org/licenses/LICENSE-2.0 Unless required 
+	by applicable law or agreed to in writing, software distributed under the 
+	License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS 
+	OF ANY KIND, either express or implied. See the License for the specific 
+	language governing permissions and limitations under the License. -->
+
+<configuration xmlns="urn:activemq"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:xi="http://www.w3.org/2001/XInclude"
+	xsi:schemaLocation="urn:activemq /schema/artemis-configuration.xsd">
+
+	<core xmlns="urn:activemq:core"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:schemaLocation="urn:activemq:core ">
+
+		<!-- <store> <database-store> <jdbc-driver-class-name>com.mysql.cj.jdbc.Driver</jdbc-driver-class-name> 
+			<jdbc-connection-url>jdbc:mysql://root:idsk@localhost:3306/artemis</jdbc-connection-url> 
+			<message-table-name>MESSAGES</message-table-name> <bindings-table-name>BINDINGS</bindings-table-name> 
+			<large-message-table-name>LARGE_MESSAGES</large-message-table-name> <page-store-table-name>PAGE_STORE</page-store-table-name> 
+			<node-manager-store-table-name>NODE_MANAGER_STORE</node-manager-store-table-name> 
+			<jdbc-lock-expiration>20000</jdbc-lock-expiration> <jdbc-lock-renew-period>4000</jdbc-lock-renew-period> 
+			<jdbc-network-timeout>20000</jdbc-network-timeout> </database-store> </store> -->
+		<persistence-enabled>true</persistence-enabled>
+		<thread-pool-max-size>200</thread-pool-max-size>
+		<address-queue-scan-period>-1</address-queue-scan-period>
+		<!-- this could be ASYNCIO, MAPPED, NIO ASYNCIO: Linux Libaio MAPPED: mmap 
+			files NIO: Plain Java Files -->
+		<journal-type>NIO</journal-type>
+
+		<paging-directory>${data.dir}/paging</paging-directory>
+
+		<bindings-directory>${data.dir}/bindings</bindings-directory>
+
+		<journal-directory>${data.dir}/journal</journal-directory>
+
+		<node-manager-lock-directory>${lock.dir}/artemis1-lock</node-manager-lock-directory>
+
+		<large-messages-directory>${data.dir}/large-messages</large-messages-directory>
+
+		<journal-datasync>true</journal-datasync>
+
+		<journal-min-files>50</journal-min-files>
+
+		<journal-pool-files>100</journal-pool-files>
+
+		<journal-file-size>10M</journal-file-size>
+		
+		<page-max-concurrent-io>10</page-max-concurrent-io>
+		
+		<journal-compact-min-files>150</journal-compact-min-files>
+
+		<!-- This value was determined through a calculation. Your system could 
+			perform 0.04 writes per millisecond on the current journal configuration. 
+			That translates as a sync write every 23480000 nanoseconds. Note: If you 
+			specify 0 the system will perform writes directly to the disk. We recommend 
+			this to be 0 if you are using journalType=MAPPED and ournal-datasync=false. -->
+		<journal-buffer-timeout>23480000</journal-buffer-timeout>
+
+
+		<!-- When using ASYNCIO, this will determine the writing queue depth for 
+			libaio. -->
+		<journal-max-io>1</journal-max-io>
+		<!-- You can verify the network health of a particular NIC by specifying 
+			the <network-check-NIC> element. <network-check-NIC>theNicName</network-check-NIC> -->
+
+		<!-- Use this to use an HTTP server to validate the network <network-check-URL-list>http://www.apache.org</network-check-URL-list> -->
+
+		<!-- <network-check-period>10000</network-check-period> -->
+		<!-- <network-check-timeout>1000</network-check-timeout> -->
+
+		<!-- this is a comma separated list, no spaces, just DNS or IPs it should 
+			accept IPV6 Warning: Make sure you understand your network topology as this 
+			is meant to validate if your network is valid. Using IPs that could eventually 
+			disappear or be partially visible may defeat the purpose. You can use a list 
+			of multiple IPs, and if any successful ping will make the server OK to continue 
+			running -->
+		<!-- <network-check-list>10.0.0.1</network-check-list> -->
+
+		<!-- use this to customize the ping used for ipv4 addresses -->
+		<!-- <network-check-ping-command>ping -c 1 -t %d %s</network-check-ping-command> -->
+
+		<!-- use this to customize the ping used for ipv6 addresses -->
+		<!-- <network-check-ping6-command>ping6 -c 1 %2$s</network-check-ping6-command> -->
+
+
+		<server-dump-interval>60000</server-dump-interval>
+
+		<!-- how often we are looking for how many bytes are being used on the 
+			disk in ms -->
+		<disk-scan-period>5000</disk-scan-period>
+
+		<!-- once the disk hits this limit the system will block, or close the 
+			connection in certain protocols that won't support flow control. -->
+		<max-disk-usage>90</max-disk-usage>
+
+		<!-- should the broker detect dead locks and other issues -->
+		<critical-analyzer>true</critical-analyzer>
+
+		<critical-analyzer-timeout>120000</critical-analyzer-timeout>
+
+		<critical-analyzer-check-period>60000</critical-analyzer-check-period>
+
+		<critical-analyzer-policy>LOG</critical-analyzer-policy>
+
+		<transaction-timeout>1800000</transaction-timeout>
+		<!-- the system will enter into page mode once you hit this limit. This 
+			is an estimate in bytes of how much the messages are using in memory The 
+			system will use half of the available memory (-Xmx) by default for the global-max-size. 
+			You may specify a different value here if you need to customize it to your 
+			needs. <global-max-size>100Mb</global-max-size> -->
+		<connectors>
+			<connector name="netty-connector">tcp://localhost:61618</connector>					
+		</connectors>
+
+		<!-- Acceptors -->
+		<acceptors>
+			<acceptor name="netty-acceptor">tcp://localhost:61618?anycastPrefix=jms.queue.;multicastPrefix=jms.topic.</acceptor>
+		</acceptors>
+
+
+		<ha-policy>
+			<shared-store>
+				<slave>
+					<failover-on-shutdown>true</failover-on-shutdown>
+					<restart-backup>true</restart-backup>
+					<allow-failback>true</allow-failback>
+				</slave>
+			</shared-store>
+		</ha-policy>
+
+		<cluster-connections>
+			<cluster-connection-uri address="static://(tcp://localhost:61616,tcp://localhost:61617,tcp://localhost:61619)?connectorName=netty-connector;retryInterval=500;useDuplicateDetection=true;messageLoadBalancingType=ON_DEMAND;maxHops=1" name="my-cluster"/>
+		</cluster-connections>
+
+		<cluster-user>admin</cluster-user>
+		<cluster-password>admin</cluster-password>
+
+		<security-settings>
+			<security-setting match="#">
+				<permission type="createNonDurableQueue" roles="amq" />
+				<permission type="deleteNonDurableQueue" roles="amq" />
+				<permission type="createDurableQueue" roles="amq" />
+				<permission type="deleteDurableQueue" roles="amq" />
+				<permission type="createAddress" roles="amq" />
+				<permission type="deleteAddress" roles="amq" />
+				<permission type="consume" roles="amq" />
+				<permission type="browse" roles="amq" />
+				<permission type="send" roles="amq" />
+				<!-- we need this otherwise ./artemis data imp wouldn't work -->
+				<permission type="manage" roles="amq" />
+			</security-setting>
+		</security-settings>
+
+		<address-settings>
+			<!-- if you define auto-create on certain queues, management has to be 
+				auto-create -->
+			<address-setting match="activemq.management#">
+				<dead-letter-address>DLQ</dead-letter-address>
+				<expiry-address>ExpiryQueue</expiry-address>
+				<redelivery-delay>60000</redelivery-delay>
+				<max-delivery-attempts>5</max-delivery-attempts>
+				<!-- with -1 only the global-max-size is in use for limiting -->
+				<max-size-bytes>50485760</max-size-bytes>
+				<page-size-bytes>10485760</page-size-bytes>
+				<message-counter-history-day-limit>10
+				</message-counter-history-day-limit>
+				<address-full-policy>PAGE</address-full-policy>
+				<auto-create-queues>true</auto-create-queues>
+				<auto-create-addresses>false</auto-create-addresses>
+			</address-setting>
+			<!--default for catch all -->
+			<address-setting match="#">
+				<dead-letter-address>DLQ</dead-letter-address>
+				<expiry-address>ExpiryQueue</expiry-address>
+				<redelivery-delay>60000</redelivery-delay>
+				<max-delivery-attempts>5</max-delivery-attempts>
+				<redistribution-delay>10000</redistribution-delay>
+				<!-- with -1 only the global-max-size is in use for limiting -->
+				<max-size-bytes>50485760</max-size-bytes>
+				<page-size-bytes>10485760</page-size-bytes>
+				<message-counter-history-day-limit>10</message-counter-history-day-limit>
+				<address-full-policy>PAGE</address-full-policy>
+				<auto-create-queues>true</auto-create-queues>
+				<auto-create-addresses>false</auto-create-addresses>
+			</address-setting>
+		</address-settings>
+
+		<!-- Uncomment the following if you want to use the Standard LoggingActiveMQServerPlugin 
+			pluging to log in events <broker-plugins> <broker-plugin class-name="org.apache.activemq.artemis.core.server.plugin.impl.LoggingActiveMQServerPlugin"> 
+			<property key="LOG_ALL_EVENTS" value="true"/> <property key="LOG_CONNECTION_EVENTS" 
+			value="true"/> <property key="LOG_SESSION_EVENTS" value="true"/> <property 
+			key="LOG_CONSUMER_EVENTS" value="true"/> <property key="LOG_DELIVERING_EVENTS" 
+			value="true"/> <property key="LOG_SENDING_EVENTS" value="true"/> <property 
+			key="LOG_INTERNAL_EVENTS" value="true"/> </broker-plugin> </broker-plugins> -->
+
+	</core>
+</configuration>
